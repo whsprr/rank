@@ -1,102 +1,207 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Friend Ranker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>whsprr</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="apple-touch-icon" sizes="526x526" href="icon.png">
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+  <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
   <style>
-    ul {
-      list-style-type: none;
+    html, body {
+      height: 100%;
+    }
+
+    body {
+      align-items: center;
+      justify-content: center;
+      background-image: linear-gradient(to bottom, lightblue, lightpink);
+        background-position: center; /* Center the image */
+  background-size: cover; /* Resize the background image to cover the entire container */
+      color: white;
+      font-family: Arial, sans-serif;
+      margin: 0;
       padding: 0;
+    }
+
+    h1 {
+      margin-top: 20px;
+      font-size: 2em; /* Set the font size to h1 size (adjust as desired) */
+      line-height: 1.2; /* Adjust the line height as needed */
+    }
+
+    button {
+      width: 50%;
+      margin-top: 10px;
+      padding: 10px;
+      font-size: 16px;
+      border: none;
+      border-radius: 20px;
+      outline: none;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      text-align: center; /* Center-align the text */
+      background-color: transparent; /* Make the background transparent */
+      color: white; /* Set the text color to white */
+      font-size: 2em; /* Set the font size to h1 size (adjust as desired) */
+      line-height: 1.2; /* Adjust the line height as needed */
+    }
+
+    button:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Add the following CSS to make the up button green */
+    button.up-button {
+      color: white;
+      background-color: green;
+    }
+
+    /* Add the following CSS to make the down button red */
+    button.down-button {
+      color: white;
+      background-color: red;
+    }
+
+    #qrcode {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .friend-item input {
+      width: 95%;
+      margin-top: 10px;
+      padding: 10px;
+      font-size: 16px;
+      border: none;
+      border-radius: 20px;
+      outline: none;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      text-align: center; /* Center-align the text */
+      background-color: transparent; /* Make the background transparent */
+      color: white; /* Set the text color to white */
+      font-size: 2em; /* Set the font size to h1 size (adjust as desired) */
+      line-height: 1.2; /* Adjust the line height as needed */
     }
   </style>
 </head>
 <body>
-  <h1>Friend Ranker</h1>
-  <input type="text" id="friendName" placeholder="Enter friend's name">
-  <button onclick="addFriend()">Add Friend</button>
-  <br><br>
-  <h2>Your Friends:</h2>
-  <ul id="friendsList"></ul>
-  <br><br>
-  <h2>Rank Order:</h2>
-  <ul id="rankOrderList"></ul>
+  <center><a href="https://whsprr.github.io"><img src="https://raw.githubusercontent.com/whsprr/whsprr.github.io/main/logo.png" alt="whsprr" style="width:200px;height:63px;"></a> <h2>Enter your friends names and rank em:</h2></center>
+
+  <form id="friendRankingForm">
+    <div id="friendList">
+      <!-- Friend name input fields will be dynamically generated here -->
+    </div>
+    <button type="submit">Save Rankings</button>
+  </form>
 
   <script>
-    // Function to add a friend to the list
-    function addFriend() {
-      var friendNameInput = document.getElementById("friendName");
-      var friendName = friendNameInput.value;
+    // Map each rank to its corresponding emoji
+    const emojiMap = {
+      1: "🔥",
+      2: "⭐️",
+      3: "😉",
+      4: "🙃",
+      5: "🙂",
+    };
 
-      if (friendName.trim() !== "") {
-        var friendsList = JSON.parse(localStorage.getItem("friends")) || [];
-        friendsList.push(friendName);
-        localStorage.setItem("friends", JSON.stringify(friendsList));
+    // Function to create the friend name input fields
+    function createFriendInputs() {
+      var friendList = document.getElementById("friendList");
+      var rankings = {}; // Object to store the retrieved rankings
 
-        friendNameInput.value = "";
-        displayFriends();
-        saveRankOrder();
+      // Retrieve the rankings from local storage
+      for (var i = 1; i <= 25; i++) {
+        var friendName = localStorage.getItem("friend" + i);
+        var rank = localStorage.getItem("rank" + i);
+
+        if (friendName) {
+          rankings[friendName] = rank;
+        }
+      }
+
+      for (var i = 1; i <= 25; i++) {
+        var friendItem = document.createElement("div");
+        friendItem.className = "friend-item";
+        var input = document.createElement("input");
+        input.type = "text";
+        input.name = "friend" + i;
+        // Autofill the input fields with the stored values, if available
+        input.value = localStorage.getItem("friend" + i) || '';
+        var rankLabel = document.createElement("span");
+        rankLabel.textContent = emojiMap[i] || "😒";
+        var upButton = document.createElement("button");
+        upButton.textContent = "📈";
+        upButton.addEventListener("click", moveFriendUp);
+        var downButton = document.createElement("button");
+        downButton.textContent = "📉";
+        downButton.addEventListener("click", moveFriendDown);
+        friendItem.appendChild(rankLabel);
+        friendItem.appendChild(input);
+        friendItem.appendChild(upButton);
+        friendItem.appendChild(downButton);
+        friendList.appendChild(friendItem);
+
+        // Set the rank label based on the retrieved rankings
+        if (input.value && rankings[input.value]) {
+          rankLabel.textContent = emojiMap[rankings[input.value]] || "😒";
+        }
       }
     }
 
-    // Function to display the friends list
-    function displayFriends() {
-      var friendsList = JSON.parse(localStorage.getItem("friends")) || [];
-      var friendsListElement = document.getElementById("friendsList");
+    // Function to save rankings to local storage
+    function saveRankings(event) {
+      event.preventDefault();
+      var friendList = document.getElementById("friendList");
+      var friendItems = friendList.children;
 
-      friendsListElement.innerHTML = "";
-      friendsList.forEach(function (friend, index) {
-        var listItem = document.createElement("li");
-        listItem.textContent = friend;
-        listItem.draggable = true;
-        listItem.ondragstart = function (event) {
-          event.dataTransfer.setData("text/plain", index);
-        };
-        listItem.ondragover = function (event) {
-          event.preventDefault();
-        };
-        listItem.ondrop = function (event) {
-          event.preventDefault();
-          var fromIndex = event.dataTransfer.getData("text/plain");
-          var toIndex = index;
-          swapFriends(fromIndex, toIndex);
-        };
-        friendsListElement.appendChild(listItem);
-      });
-    }
+      for (var i = 0; i < friendItems.length; i++) {
+        var friendItem = friendItems[i];
+        var input = friendItem.querySelector("input");
+        var friendName = input.value;
+        var rank = i + 1;
 
-    // Function to save the rank order
-    function saveRankOrder() {
-      var friendsList = JSON.parse(localStorage.getItem("friends")) || [];
-      var rankOrderList = document.getElementById("rankOrderList");
-
-      rankOrderList.innerHTML = "";
-      friendsList.forEach(function (friend) {
-        var listItem = document.createElement("li");
-        listItem.textContent = friend;
-        rankOrderList.appendChild(listItem);
-      });
-    }
-
-    // Function to swap the rank order of friends
-    function swapFriends(fromIndex, toIndex) {
-      var friendsList = JSON.parse(localStorage.getItem("friends")) || [];
-
-      if (fromIndex < 0 || fromIndex >= friendsList.length ||
-        toIndex < 0 || toIndex >= friendsList.length) {
-        return;
+        localStorage.setItem("friend" + (i + 1), friendName);
+        localStorage.setItem("rank" + (i + 1), rank);
       }
-
-      var friend = friendsList[fromIndex];
-      friendsList.splice(fromIndex, 1);
-      friendsList.splice(toIndex, 0, friend);
-
-      localStorage.setItem("friends", JSON.stringify(friendsList));
-
-      saveRankOrder();
     }
 
-    // Load the friends and rank order on page load
-    displayFriends();
-    saveRankOrder();
+    // Function to move a friend up in the list
+    function moveFriendUp(event) {
+      var friendItem = event.target.parentElement;
+      var previousFriendItem = friendItem.previousElementSibling;
+      if (previousFriendItem) {
+        friendItem.parentNode.insertBefore(friendItem, previousFriendItem);
+        updateRankLabels();
+      }
+    }
+
+    // Function to move a friend down in the list
+    function moveFriendDown(event) {
+      var friendItem = event.target.parentElement;
+      var nextFriendItem = friendItem.nextElementSibling;
+      if (nextFriendItem) {
+        friendItem.parentNode.insertBefore(nextFriendItem, friendItem);
+        updateRankLabels();
+      }
+    }
+
+    // Function to update the rank labels based on the current order
+    function updateRankLabels() {
+      var friendList = document.getElementById("friendList");
+      var friendItems = friendList.children;
+      for (var i = 0; i < friendItems.length; i++) {
+        var rankLabel = friendItems[i].querySelector("span");
+        rankLabel.textContent = emojiMap[i + 1] || "😒";
+      }
+    }
+
+    // Generate friend input fields when the page loads
+    window.addEventListener("load", createFriendInputs);
+
+    // Save rankings when the form is submitted
+    var form = document.getElementById("friendRankingForm");
+    form.addEventListener("submit", saveRankings);
   </script>
 </body>
 </html>
