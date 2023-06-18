@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Friend Ranker</title>
+  <style>
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Friend Ranker</h1>
+  <input type="text" id="friendName" placeholder="Enter friend's name">
+  <button onclick="addFriend()">Add Friend</button>
+  <br><br>
+  <h2>Your Friends:</h2>
+  <ul id="friendsList"></ul>
+  <button onclick="saveRankOrder()">Save Rank Order</button>
+  <br><br>
+  <h2>Rank Order:</h2>
+  <ul id="rankOrderList"></ul>
+
+  <script>
+    // Function to add a friend to the list
+    function addFriend() {
+      var friendNameInput = document.getElementById("friendName");
+      var friendName = friendNameInput.value;
+
+      if (friendName.trim() !== "") {
+        var friendsList = JSON.parse(localStorage.getItem("friends")) || [];
+        friendsList.push(friendName);
+        localStorage.setItem("friends", JSON.stringify(friendsList));
+
+        friendNameInput.value = "";
+        displayFriends();
+      }
+    }
+
+    // Function to display the friends list
+    function displayFriends() {
+      var friendsList = JSON.parse(localStorage.getItem("friends")) || [];
+      var friendsListElement = document.getElementById("friendsList");
+
+      friendsListElement.innerHTML = "";
+      friendsList.forEach(function (friend, index) {
+        var listItem = document.createElement("li");
+        listItem.textContent = friend;
+        friendsListElement.appendChild(listItem);
+      });
+    }
+
+    // Function to save the rank order
+    function saveRankOrder() {
+      var friendsList = JSON.parse(localStorage.getItem("friends")) || [];
+      var rankOrderList = document.getElementById("rankOrderList");
+
+      rankOrderList.innerHTML = "";
+      friendsList.forEach(function (friend, index) {
+        var listItem = document.createElement("li");
+        listItem.textContent = friend;
+        listItem.draggable = true;
+        listItem.ondragstart = function (event) {
+          event.dataTransfer.setData("text/plain", index);
+        };
+        listItem.ondragover = function (event) {
+          event.preventDefault();
+        };
+        listItem.ondrop = function (event) {
+          event.preventDefault();
+          var fromIndex = event.dataTransfer.getData("text/plain");
+          var toIndex = index;
+          swapFriends(fromIndex, toIndex);
+        };
+        rankOrderList.appendChild(listItem);
+      });
+    }
+
+    // Function to swap the rank order of friends
+    function swapFriends(fromIndex, toIndex) {
+      var friendsList = JSON.parse(localStorage.getItem("friends")) || [];
+
+      if (fromIndex < 0 || fromIndex >= friendsList.length ||
+        toIndex < 0 || toIndex >= friendsList.length) {
+        return;
+      }
+
+      var friend = friendsList[fromIndex];
+      friendsList.splice(fromIndex, 1);
+      friendsList.splice(toIndex, 0, friend);
+
+      localStorage.setItem("friends", JSON.stringify(friendsList));
+
+      saveRankOrder();
+    }
+
+    // Load the friends and rank order on page load
+    displayFriends();
+    saveRankOrder();
+  </script>
+</body>
+</html>
