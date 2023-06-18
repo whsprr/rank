@@ -16,7 +16,6 @@
   <br><br>
   <h2>Your Friends:</h2>
   <ul id="friendsList"></ul>
-  <button onclick="saveRankOrder()">Save Rank Order</button>
   <br><br>
   <h2>Rank Order:</h2>
   <ul id="rankOrderList"></ul>
@@ -34,6 +33,7 @@
 
         friendNameInput.value = "";
         displayFriends();
+        saveRankOrder();
       }
     }
 
@@ -43,19 +43,6 @@
       var friendsListElement = document.getElementById("friendsList");
 
       friendsListElement.innerHTML = "";
-      friendsList.forEach(function (friend, index) {
-        var listItem = document.createElement("li");
-        listItem.textContent = friend;
-        friendsListElement.appendChild(listItem);
-      });
-    }
-
-    // Function to save the rank order
-    function saveRankOrder() {
-      var friendsList = JSON.parse(localStorage.getItem("friends")) || [];
-      var rankOrderList = document.getElementById("rankOrderList");
-
-      rankOrderList.innerHTML = "";
       friendsList.forEach(function (friend, index) {
         var listItem = document.createElement("li");
         listItem.textContent = friend;
@@ -72,6 +59,19 @@
           var toIndex = index;
           swapFriends(fromIndex, toIndex);
         };
+        friendsListElement.appendChild(listItem);
+      });
+    }
+
+    // Function to save the rank order
+    function saveRankOrder() {
+      var friendsList = JSON.parse(localStorage.getItem("friends")) || [];
+      var rankOrderList = document.getElementById("rankOrderList");
+
+      rankOrderList.innerHTML = "";
+      friendsList.forEach(function (friend) {
+        var listItem = document.createElement("li");
+        listItem.textContent = friend;
         rankOrderList.appendChild(listItem);
       });
     }
